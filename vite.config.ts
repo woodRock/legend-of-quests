@@ -10,6 +10,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registered from main.tsx so a new version reloads the page as soon as it's installed.
+      injectRegister: false,
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'The Legend of Quests',

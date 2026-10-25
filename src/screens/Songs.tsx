@@ -64,7 +64,9 @@ export function OcarinaMenu() {
       commit(toggleFocus(current))
       play(current.focus ? 'close' : 'discover')
     }
-    setPlaying(null)
+    // Keep showing the performance while this menu animates away. Clearing `playing` here would
+    // re-render the song list inside the exiting menu, where it gets stuck on screen and its
+    // buttons can't close a menu that is already closed.
     setMenu(TARGET[playing.id])
   }
 

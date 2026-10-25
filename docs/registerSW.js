@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/legend-of-quests/sw.js', { scope: '/legend-of-quests/' })})}
