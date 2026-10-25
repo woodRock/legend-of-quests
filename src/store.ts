@@ -17,6 +17,8 @@ interface State {
   slots: Slots
   slotsLoaded: boolean
   filesError: string | null
+  /** Set when the last save was rejected; cleared by the next successful save. */
+  saveError: boolean
   screen: Screen
   nameSlot: number | null
   file: GameFile | null
@@ -47,11 +49,19 @@ let unwatchFiles: (() => void) | null = null
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 export const useGame = create<State>((set, get) => {
+  const save = (uid: string, file: GameFile) =>
+    backend.saveFile(uid, file).then(
+      () => set({ saveError: false }),
+      (err) => {
+        console.error('Save failed', err)
+        set({ saveError: true })
+      },
+    )
   const flushSave = () => {
     const { user, file } = get()
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = null
-    if (user && file) void backend.saveFile(user.uid, file)
+    if (user && file) void save(user.uid, file)
   }
   const queueSave = () => {
     if (saveTimer) clearTimeout(saveTimer)
@@ -75,6 +85,7 @@ export const useGame = create<State>((set, get) => {
     slots: [null, null, null],
     slotsLoaded: false,
     filesError: null,
+    saveError: false,
     screen: 'title',
     nameSlot: null,
     file: null,
@@ -143,7 +154,7 @@ export const useGame = create<State>((set, get) => {
       const slots = [...get().slots]
       slots[slot - 1] = file
       set({ slots, screen: 'files', nameSlot: null })
-      void backend.saveFile(user.uid, file)
+      void save(user.uid, file)
     },
 
     async eraseFile(slot) {

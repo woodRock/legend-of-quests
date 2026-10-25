@@ -63,7 +63,7 @@ function QuestRow({ quest, onOpen, onAct }: { quest: Quest; onOpen: () => void; 
 }
 
 export function Game() {
-  const { file, area, commit, events, paused, setPaused, transition } = useGame()
+  const { file, area, commit, events, paused, setPaused, transition, saveError } = useGame()
   const [sheet, setSheet] = useState<Sheet>(null)
   const [tip, setTip] = useState<Tip | null>(null)
   const [showDone, setShowDone] = useState(false)
@@ -144,6 +144,11 @@ export function Game() {
         {info.name}
         <small>{area === 'field' ? 'All quests' : info.hint}</small>
       </div>
+      {saveError && (
+        <div className="error" role="alert" style={{ textAlign: 'center', margin: '0 16px 6px' }}>
+          Your progress isn't saving. Keep this page open and check your connection.
+        </div>
+      )}
 
       <div className="log">
         {showDone ? (

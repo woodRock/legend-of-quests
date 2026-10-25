@@ -57,6 +57,8 @@ function cloudBackend(app: FirebaseApp): Backend {
   // Persistent cache: the quest log works offline and syncs when back online.
   const db = initializeFirestore(app, {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    // Optional quest fields (like an empty due date) are undefined; Firestore rejects those otherwise.
+    ignoreUndefinedProperties: true,
   })
   const filesCol = (uid: string) => collection(db, 'users', uid, 'files')
 
