@@ -5,6 +5,9 @@ import type { AreaId, GameEvent, GameFile } from './game/types'
 
 export type Screen = 'title' | 'login' | 'files' | 'name' | 'game'
 
+/** Full panels opened on top of the world: the shop, the ocarina and what each song opens. */
+export type Menu = 'shop' | 'ocarina' | 'quickadd' | 'time' | 'sun' | 'storms' | 'saria'
+
 /** A full-screen cover: fade to a colour, optionally showing an area's title card. */
 export interface Transition {
   color: 'black' | 'white'
@@ -27,6 +30,7 @@ interface State {
   transition: Transition | null
   paused: boolean
   gameOver: boolean
+  menu: Menu | null
 
   init(): void
   go(screen: Screen): void
@@ -38,6 +42,7 @@ interface State {
   shiftEvent(): void
   travel(area: AreaId): void
   setPaused(p: boolean): void
+  setMenu(m: Menu | null): void
   continueAfterGameOver(): void
   quitToFiles(): void
   signOut(): Promise<void>
@@ -95,6 +100,7 @@ export const useGame = create<State>((set, get) => {
     transition: null,
     paused: false,
     gameOver: false,
+    menu: null,
 
     init() {
       if (initialized) return
@@ -141,7 +147,7 @@ export const useGame = create<State>((set, get) => {
       void get().transitionTo(
         'white',
         () => {
-          set({ file, screen: 'game', area: 'field', events: [], paused: false, gameOver: false })
+          set({ file, screen: 'game', area: 'field', events: [], paused: false, gameOver: false, menu: null })
           tick()
         },
         'field',
@@ -174,10 +180,11 @@ export const useGame = create<State>((set, get) => {
 
     travel(area) {
       if (area === get().area) return
-      void get().transitionTo('black', () => set({ area, paused: false }), area)
+      void get().transitionTo('black', () => set({ area, paused: false, menu: null }), area)
     },
 
     setPaused: (paused) => set({ paused }),
+    setMenu: (menu) => set({ menu, paused: false }),
 
     continueAfterGameOver() {
       const { file } = get()
@@ -189,7 +196,7 @@ export const useGame = create<State>((set, get) => {
     quitToFiles() {
       flushSave()
       void get().transitionTo('black', () =>
-        set({ file: null, screen: 'files', paused: false, events: [], gameOver: false }),
+        set({ file: null, screen: 'files', paused: false, events: [], gameOver: false, menu: null }),
       )
     },
 

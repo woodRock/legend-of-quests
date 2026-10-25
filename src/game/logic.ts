@@ -1,5 +1,6 @@
 import { AREAS } from './areas'
-import type { AreaId, GameEvent, GameFile, ItemId, Quest, QuestSize } from './types'
+import { OCARINA_AT, SONGS, STORMS_RECHARGE_DAYS } from './songs'
+import type { AreaId, BottleContent, GameEvent, GameFile, ItemId, Quest, QuestSize, Reward, SongId } from './types'
 
 export const RUPEE_VALUE: Record<QuestSize, number> = { small: 1, medium: 5, large: 20 }
 export const SIDE_QUESTS_PER_PIECE = 5
@@ -59,10 +60,21 @@ function giveItem(f: GameFile, item: ItemId, events: GameEvent[]) {
   events.push({ type: 'item', item })
 }
 
-/** Grants anything newly earned by the file's progress: equipment and new areas. */
+/** Grants anything newly earned by the file's progress: equipment, songs and new areas. */
 function checkMilestones(f: GameFile, events: GameEvent[]) {
   if (f.completed >= 1) giveItem(f, 'kokiri-sword', events)
+  if (f.completed >= OCARINA_AT) giveItem(f, 'fairy-ocarina', events)
   if (f.completed >= 10) giveItem(f, 'deku-shield', events)
+  // Songs need something to play them on.
+  if (f.items.includes('fairy-ocarina')) {
+    f.songs ??= []
+    for (const song of SONGS) {
+      if (!f.songs.includes(song.id) && song.learned(f)) {
+        f.songs.push(song.id)
+        events.push({ type: 'song', song: song.id })
+      }
+    }
+  }
   for (const a of AREAS) {
     if (!f.areas.includes(a.id) && a.unlocked(f)) {
       f.areas.push(a.id)
@@ -183,7 +195,12 @@ export function dailyTick(file: GameFile, day = today()): Result {
     const quarters = Math.min(12, Math.min(overdue, 4) * days, f.health)
     f.health -= quarters
     events.push({ type: 'damage', quarters, overdue })
-    if (f.health <= 0) events.push({ type: 'gameOver' })
+    if (f.health <= 0 && f.bottle === 'fairy') {
+      // A bottled fairy revives you instead of a Game Over.
+      f.bottle = 'empty'
+      f.health = maxHealth(f)
+      events.push({ type: 'fairy' })
+    } else if (f.health <= 0) events.push({ type: 'gameOver' })
   }
   return { file: f, events }
 }
@@ -193,13 +210,15 @@ export function dailyTick(file: GameFile, day = today()): Result {
  * quests, so tokens collected before then are credited once.
  */
 export function migrateFile(file: GameFile): Result {
-  if (file.dailiesCounted) return { file, events: [] }
   const f = clone(file)
   const events: GameEvent[] = []
-  f.completed += f.skulltulas
-  f.dailiesCounted = true
+  if (!f.dailiesCounted) {
+    f.completed += f.skulltulas
+    f.dailiesCounted = true
+  }
+  // Grants things added after the save was made, like the ocarina and songs.
   checkMilestones(f, events)
-  return { file: f, events }
+  return events.length || !file.dailiesCounted ? { file: f, events } : { file, events: [] }
 }
 
 export function continueGame(file: GameFile): GameFile {
@@ -217,3 +236,151 @@ export function markTip(file: GameFile, tip: string): GameFile {
 }
 
 export const newAreas = (before: AreaId[], after: AreaId[]) => after.filter((a) => !before.includes(a))
+
+const addDays = (day: string, n: number) => {
+  const d = new Date(day + 'T12:00:00')
+  d.setDate(d.getDate() + n)
+  return today(d)
+}
+
+// ---------- Shop ----------
+
+export type GoodId = 'bottle' | 'potion' | 'fairy'
+
+export const GOODS: { id: GoodId; name: string; price: number; text: string }[] = [
+  { id: 'bottle', name: 'Empty Bottle', price: 50, text: 'Holds a Red Potion or a Fairy. You can only carry one.' },
+  { id: 'potion', name: 'Red Potion', price: 30, text: 'Drink it from Select Item to refill every heart. Needs an empty bottle.' },
+  { id: 'fairy', name: 'Fairy', price: 50, text: 'Saves you from a Game Over by reviving you, or release it to heal. Needs an empty bottle.' },
+]
+
+/** Why a good can't be bought right now, or null if it can. */
+export function goodBlocker(f: GameFile, id: GoodId): string | null {
+  const good = GOODS.find((g) => g.id === id)!
+  if (id === 'bottle' && f.bottle) return 'Sold out'
+  if (id !== 'bottle' && !f.bottle) return 'Needs a bottle'
+  if (id !== 'bottle' && f.bottle !== 'empty') return 'Bottle is full'
+  if (good.price > walletMax(f)) return 'Wallet too small'
+  if (f.rupees < good.price) return 'Not enough rupees'
+  return null
+}
+
+export function buyGood(file: GameFile, id: GoodId): Result {
+  if (goodBlocker(file, id)) return { file, events: [] }
+  const f = clone(file)
+  const good = GOODS.find((g) => g.id === id)!
+  f.rupees -= good.price
+  const content: BottleContent = id === 'bottle' ? 'empty' : id
+  f.bottle = content
+  return { file: f, events: [{ type: 'bottle', content }] }
+}
+
+export function rewardBlocker(f: GameFile, r: Reward): string | null {
+  if (r.price > walletMax(f)) return 'Wallet too small'
+  if (f.rupees < r.price) return 'Not enough rupees'
+  return null
+}
+
+export function buyReward(file: GameFile, rewardId: string): Result {
+  const r = file.rewards?.find((x) => x.id === rewardId)
+  if (!r || rewardBlocker(file, r)) return { file, events: [] }
+  const f = clone(file)
+  f.rupees -= r.price
+  f.purchases = [{ name: r.name, price: r.price, at: Date.now() }, ...(f.purchases ?? [])].slice(0, 30)
+  return { file: f, events: [{ type: 'reward', name: r.name }] }
+}
+
+export function addReward(file: GameFile, name: string, price: number): GameFile {
+  const f = clone(file)
+  f.rewards = [...(f.rewards ?? []), { id: uid(), name, price: Math.max(1, Math.round(price)) }]
+  return f
+}
+
+export function removeReward(file: GameFile, id: string): GameFile {
+  const f = clone(file)
+  f.rewards = (f.rewards ?? []).filter((r) => r.id !== id)
+  return f
+}
+
+/** Drinks the potion or releases the fairy: both refill every heart. */
+export function drinkBottle(file: GameFile): Result {
+  if (file.bottle !== 'potion' && file.bottle !== 'fairy') return { file, events: [] }
+  const f = clone(file)
+  const events: GameEvent[] = []
+  f.bottle = 'empty'
+  heal(f, maxHealth(f), events)
+  return { file: f, events }
+}
+
+// ---------- Songs ----------
+
+export const hasSong = (f: GameFile, id: SongId) => !!f.songs?.includes(id)
+
+export function toggleFocus(file: GameFile): GameFile {
+  const f = clone(file)
+  f.focus = !f.focus
+  return f
+}
+
+/** Zelda's Lullaby: what still needs attention today. */
+export const inFocus = (q: Quest, day = today()) =>
+  q.kind === 'daily' ? q.lastDone !== day : !q.doneAt && !!q.due && q.due <= day
+
+/** Song of Time: undoes a completion, taking back what it paid out where it can. */
+export function undoCompletion(file: GameFile, id: string, day = today()): GameFile {
+  const f = clone(file)
+  const q = f.quests.find((x) => x.id === id)
+  if (!q) return file
+  if (q.kind === 'side' && q.doneAt) {
+    q.doneAt = undefined
+    f.rupees = Math.max(0, f.rupees - RUPEE_VALUE[q.size])
+  } else if (q.kind === 'daily' && q.lastDone === day) {
+    q.lastDone = undefined
+    f.skulltulas = Math.max(0, f.skulltulas - 1)
+  } else return file
+  f.completed = Math.max(0, f.completed - 1)
+  return f
+}
+
+/** Side quests and dailies that the Song of Time can still undo. */
+export const undoable = (f: GameFile, day = today()) =>
+  f.quests
+    .filter((q) => (q.kind === 'side' && q.doneAt) || (q.kind === 'daily' && q.lastDone === day))
+    .sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0))
+    .slice(0, 10)
+
+export function postpone(file: GameFile, ids: string[], day = today()): GameFile {
+  const f = clone(file)
+  const tomorrow = addDays(day, 1)
+  for (const q of f.quests) if (ids.includes(q.id)) q.due = tomorrow
+  return f
+}
+
+export const stormsReadyOn = (f: GameFile) =>
+  f.stormsPlayed ? addDays(f.stormsPlayed, STORMS_RECHARGE_DAYS) : today()
+
+export function playStorms(file: GameFile, day = today()): Result {
+  if (!hasSong(file, 'storms') || stormsReadyOn(file) > day) return { file, events: [] }
+  const f = clone(file)
+  const events: GameEvent[] = []
+  for (const q of f.quests) if (isOverdue(q, day)) q.due = day
+  f.stormsPlayed = day
+  heal(f, maxHealth(f), events)
+  return { file: f, events }
+}
+
+/** Saria's Song: the most useful next quest, or null when there's nothing to do. */
+export function nextQuest(f: GameFile, day = today()): Quest | null {
+  const open = f.quests.filter((q) => (q.kind === 'daily' ? q.lastDone !== day : !q.doneAt))
+  const byDue = (a: Quest, b: Quest) => (a.due ?? '9999').localeCompare(b.due ?? '9999')
+  return (
+    open.filter((q) => isOverdue(q, day)).sort(byDue)[0] ??
+    open.filter((q) => q.due === day)[0] ??
+    open.filter((q) => q.kind === 'daily')[0] ??
+    open.filter((q) => q.kind === 'dungeon')[0] ??
+    open.filter((q) => q.due).sort(byDue)[0] ??
+    open.sort((a, b) => a.createdAt - b.createdAt)[0] ??
+    null
+  )
+}
+
+export const tomorrowOf = (day = today()) => addDays(day, 1)

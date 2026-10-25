@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { areaById } from '../game/areas'
 import { eventText, isBigEvent } from '../game/text'
 import type { GameEvent } from '../game/types'
-import { play } from '../lib/sfx'
+import { play, playMelody } from '../lib/sfx'
 import { useGame } from '../store'
+import { NOTE_FREQ, songById } from '../game/songs'
 import {
-  BossKey, Compass, DungeonMap, HeartContainer, ItemIcon, PieceOfHeart, SkulltulaToken, SmallKey,
+  Bottle, BossKey, Compass, DungeonMap, Fairy, HeartContainer, ItemIcon, MusicNote, PieceOfHeart, Rupee, SkulltulaToken,
+  SmallKey,
 } from './Icons'
 import { TextBox } from './TextBox'
 
@@ -51,6 +53,10 @@ function EventIcon({ e }: { e: GameEvent }) {
     case 'compass': return <Compass size={96} />
     case 'bossKey': return <BossKey size={96} />
     case 'token': return <SkulltulaToken size={96} />
+    case 'song': return <MusicNote size={96} color={songById(e.song).color} />
+    case 'bottle': return <Bottle size={96} content={e.content} />
+    case 'reward': return <Rupee size={96} color="gold" />
+    case 'fairy': return <Fairy size={96} />
     default: return null
   }
 }
@@ -70,6 +76,8 @@ export function EventPlayer() {
     }
     if (e.type === 'area') play('discover')
     else if (e.type === 'damage') play('damage')
+    else if (e.type === 'song') playMelody(songById(e.song).notes.map((n) => NOTE_FREQ[n]))
+    else if (e.type === 'fairy') play('heal')
     else play('item')
   }, [e, big, shiftEvent, transition])
 

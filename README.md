@@ -29,5 +29,13 @@ To publish changes, run `npm run build` (it writes to `docs/`) and commit the re
 | Piece of Heart | Every 5 side quests; 4 pieces make a Heart Container |
 | Spiritual Stones | Your first three cleared dungeons |
 | Areas | Quest categories: 10, 25, 50 and 100 completed quests, or 1–3 cleared dungeons |
+| Shop (Kokiri Forest, Castle Town) | Spend rupees on a bottle, Red Potion, Fairy, or rewards you stock yourself |
+| Fairy Ocarina (3 quests) | Plays songs from Select Item in the pause menu |
+| Zelda's Lullaby (6) | Focus: only overdue, due today and today's dailies |
+| Epona's Song (15) | Quick-add quests, plus a C button shortcut |
+| Song of Time (first dungeon) | Undo a recent completion, or push overdue quests to tomorrow |
+| Saria's Song (20) | Suggests the next quest to do |
+| Sun's Song (30) | Review of the day |
+| Song of Storms (40) | Weekly: move overdue quests to today and fully heal |
 
 Game rules live in `src/game/logic.ts`; screens are in `src/screens/`.

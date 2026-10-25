@@ -133,6 +133,30 @@ const Wallet = ({ size = 48, color }: { size?: number; color: string }) => (
   </Svg>
 )
 
+const Ocarina = ({ size = 48 }: { size?: number }) => (
+  <Svg size={size}>
+    <path d="M3 13c0-4 5-7 11-7 4 0 7 2 7 5s-3 6-8 6c-2 0-4-.5-5.5-1.5L4 17Z" fill="#7a4a22" stroke="#3a220e" strokeWidth="1" />
+    <path d="M6 12c2-2 6-3 10-2" stroke="#a8743c" strokeWidth="1" fill="none" />
+    <circle cx="11" cy="12.5" r="1" fill="#3a220e" /><circle cx="14" cy="12" r="1" fill="#3a220e" /><circle cx="17" cy="12.5" r="1" fill="#3a220e" />
+  </Svg>
+)
+
+export function Bottle({ content, size = 48 }: { content?: 'empty' | 'potion' | 'fairy'; size?: number }) {
+  return (
+    <Svg size={size}>
+      {content === 'potion' && <path d="M7.5 13h9v6.5c0 1.4-1.1 2.5-2.5 2.5h-4c-1.4 0-2.5-1.1-2.5-2.5Z" fill="#e8303a" />}
+      {content === 'fairy' && (
+        <>
+          <circle cx="12" cy="16" r="4" fill="#bfe8ff" opacity=".5" />
+          <circle cx="12" cy="16" r="2" fill="#fff" />
+        </>
+      )}
+      <path d="M9.5 2h5v4l2.5 4v9.5c0 1.4-1.1 2.5-2.5 2.5h-5C8.1 22 7 20.9 7 19.5V10l2.5-4Z" fill="rgba(200,230,255,.18)" stroke="#d8eeff" strokeWidth="1.2" />
+      <rect x="9" y="1" width="6" height="2.4" rx=".8" fill="#8a5a2a" />
+    </Svg>
+  )
+}
+
 export function ItemIcon({ item, size = 48 }: { item: ItemId; size?: number }) {
   switch (item) {
     case 'kokiri-sword': return <Sword size={size} />
@@ -142,6 +166,7 @@ export function ItemIcon({ item, size = 48 }: { item: ItemId; size?: number }) {
     case 'zora-sapphire': return <Stone size={size} color="#3a7bf0" accent="#0e2a6a" />
     case 'adult-wallet': return <Wallet size={size} color="#c0392b" />
     case 'giant-wallet': return <Wallet size={size} color="#7a3ab0" />
+    case 'fairy-ocarina': return <Ocarina size={size} />
   }
 }
 
@@ -150,5 +175,31 @@ export const Fairy = ({ size = 22 }: { size?: number }) => (
     <circle cx="12" cy="12" r="6" fill="#bfe8ff" opacity=".35" />
     <circle cx="12" cy="12" r="3.4" fill="#fff" />
     <path d="M12 11c-3-5-8-4-8-1s5 3 8 1ZM12 11c3-5 8-4 8-1s-5 3-8 1Z" fill="#d8f2ff" opacity=".8" />
+  </Svg>
+)
+
+/** An ocarina button: the A button or a yellow C button with its arrow. */
+export function NoteButton({ note, size = 26 }: { note: 'A' | 'down' | 'right' | 'left' | 'up'; size?: number }) {
+  if (note === 'A') {
+    return (
+      <Svg size={size}>
+        <circle cx="12" cy="12" r="10" fill="#2f6fe0" stroke="#fff" strokeWidth="1.4" />
+        <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="900" fill="#fff" fontFamily="sans-serif">A</text>
+      </Svg>
+    )
+  }
+  const rot = { up: 0, right: 90, down: 180, left: 270 }[note]
+  return (
+    <Svg size={size}>
+      <circle cx="12" cy="12" r="10" fill="#f5c518" stroke="#fff" strokeWidth="1.4" />
+      <path d="M12 6 17 14H7Z" fill="#5a4400" transform={`rotate(${rot} 12 12)`} />
+    </Svg>
+  )
+}
+
+export const MusicNote = ({ color = '#fff', size = 24 }: { color?: string; size?: number }) => (
+  <Svg size={size}>
+    <path d="M9 18V5l11-2v13" stroke={color} strokeWidth="2" fill="none" />
+    <circle cx="6.5" cy="18" r="2.8" fill={color} /><circle cx="17.5" cy="16" r="2.8" fill={color} />
   </Svg>
 )

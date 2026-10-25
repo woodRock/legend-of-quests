@@ -32,6 +32,8 @@ export function Hud({
   onB,
   aLabel,
   bLabel,
+  onC,
+  cLabel,
 }: {
   file: GameFile
   onStart: () => void
@@ -39,6 +41,9 @@ export function Hud({
   onB: () => void
   aLabel: string
   bLabel: string
+  /** Shown once a song puts something on a C button. */
+  onC?: () => void
+  cLabel?: string
 }) {
   const rupees = useCountUp(file.rupees)
   const max = walletMax(file)
@@ -52,7 +57,12 @@ export function Hud({
           {String(rupees).padStart(digits, '0')}
         </div>
       </div>
-      <div className="buttons">
+      <div className={`buttons${onC ? ' has-c' : ''}`}>
+        {onC && (
+          <button className="btn-round btn-c" onClick={onC} aria-label={`C: ${cLabel}`}>
+            <span><span className="btn-letter">C</span>{cLabel}</span>
+          </button>
+        )}
         <button className="btn-round btn-start outline" onClick={onStart} aria-label="Pause menu">START</button>
         <button className="btn-round btn-b outline" onClick={onB} aria-label={`B: ${bLabel}`}>
           <span><span className="btn-letter">B</span>{bLabel}</span>

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { areaById } from '../game/areas'
 import {
-  addQuest, collectDaily, completeSideQuest, dailyDoneToday, isOverdue, markTip, removeQuest, today, updateQuest,
+  addQuest, collectDaily, completeSideQuest, dailyDoneToday, hasSong, inFocus, isOverdue, markTip, removeQuest, today,
+  toggleFocus, updateQuest,
 } from '../game/logic'
 import { NAVI_TIPS } from '../game/text'
 import type { Quest } from '../game/types'
@@ -14,6 +15,10 @@ import { TextBox } from '../ui/TextBox'
 import { DungeonView } from './DungeonView'
 import { PauseMenu } from './PauseMenu'
 import { QuestEditor, type Draft } from './QuestEditor'
+import { Shop } from './Shop'
+import { OcarinaMenu, QuickAdd, SariaAdvice, SongOfStorms, SongOfTime, SunReview } from './Songs'
+
+const SHOPS: Partial<Record<string, string>> = { kokiri: 'Kokiri Shop', castle: 'Castle Town Bazaar' }
 
 type Sheet = { type: 'new' } | { type: 'edit'; id: string } | { type: 'dungeon'; id: string } | null
 type Tip = keyof typeof NAVI_TIPS
@@ -63,24 +68,25 @@ function QuestRow({ quest, onOpen, onAct }: { quest: Quest; onOpen: () => void; 
 }
 
 export function Game() {
-  const { file, area, commit, events, paused, setPaused, transition, saveError } = useGame()
+  const { file, area, commit, events, paused, setPaused, transition, saveError, menu, setMenu } = useGame()
   const [sheet, setSheet] = useState<Sheet>(null)
   const [tip, setTip] = useState<Tip | null>(null)
   const [showDone, setShowDone] = useState(false)
 
   const info = areaById(area)
   const quests = useMemo(
-    () => (file?.quests ?? []).filter((q) => area === 'field' || q.area === area),
-    [file?.quests, area],
+    () => (file?.quests ?? []).filter((q) => (area === 'field' || q.area === area) && (!file?.focus || inFocus(q))),
+    [file?.quests, file?.focus, area],
   )
 
   // Navi speaks up once per tip, when nothing else is on screen.
-  const busy = !!transition || events.length > 0 || paused || !!sheet || !!tip
+  const busy = !!transition || events.length > 0 || paused || !!sheet || !!tip || !!menu
   useEffect(() => {
     if (!file || busy) return
     const want: Tip | null = !file.tips.includes('welcome') ? 'welcome'
       : !file.tips.includes('overdue') && file.quests.some((q) => isOverdue(q)) ? 'overdue'
       : !file.tips.includes('daily') && file.quests.some((q) => q.kind === 'daily') ? 'daily'
+      : !file.tips.includes('shop') && file.rupees >= 10 ? 'shop'
       : null
     if (want) {
       const t = setTimeout(() => setTip(want), 500)
@@ -137,13 +143,22 @@ export function Game() {
         onA={() => { play('select'); setSheet({ type: 'new' }) }}
         onB={() => { play('cursor'); setShowDone(!showDone) }}
         onStart={() => { play('open'); setPaused(true) }}
+        {...(hasSong(file, 'epona') ? { cLabel: 'Epona', onC: () => { play('select'); setMenu('quickadd') } } : {})}
       />
       <div className="navi"><Fairy size={26} /></div>
 
       <div className="area-name outline">
         {info.name}
         <small>{area === 'field' ? 'All quests' : info.hint}</small>
+        {file.focus && (
+          <button className="focus-tag" onClick={() => { play('cancel'); commit(toggleFocus(file)) }}>
+            ♪ FOCUS · TODAY ONLY · END
+          </button>
+        )}
       </div>
+      {SHOPS[area] && (
+        <button className="shop-sign outline" onClick={() => { play('open'); setMenu('shop') }}>{SHOPS[area]}</button>
+      )}
       {saveError && (
         <div className="error" role="alert" style={{ textAlign: 'center', margin: '0 16px 6px' }}>
           Your progress isn't saving. Keep this page open and check your connection.
@@ -160,7 +175,9 @@ export function Game() {
         ) : empty ? (
           <div className="empty-log outline">
             <div className="fairy"><Fairy size={40} /></div>
-            <p>No quests in {info.name} yet.<br />Press <span style={{ color: '#8fb6ff' }}>A</span> to take one on.</p>
+            {file.focus
+              ? <p>Nothing needs you today in {info.name}.<br />Rest easy, hero.</p>
+              : <p>No quests in {info.name} yet.<br />Press <span style={{ color: '#8fb6ff' }}>A</span> to take one on.</p>}
           </div>
         ) : (
           <>
@@ -189,6 +206,16 @@ export function Game() {
             onEdit={() => setSheet({ type: 'edit', id: dungeon.id })} />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {menu === 'shop' && <Shop key="shop" name={SHOPS[area] ?? 'Shop'} />}
+        {menu === 'ocarina' && <OcarinaMenu key="ocarina" />}
+        {menu === 'quickadd' && <QuickAdd key="quickadd" />}
+        {menu === 'time' && <SongOfTime key="time" />}
+        {menu === 'sun' && <SunReview key="sun" />}
+        {menu === 'storms' && <SongOfStorms key="storms" />}
+      </AnimatePresence>
+      {menu === 'saria' && <SariaAdvice />}
 
       <AnimatePresence>{paused && <PauseMenu key="pause" />}</AnimatePresence>
 

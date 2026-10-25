@@ -47,6 +47,25 @@ export type ItemId =
   | 'zora-sapphire'
   | 'adult-wallet'
   | 'giant-wallet'
+  | 'fairy-ocarina'
+
+export type SongId = 'zelda' | 'epona' | 'time' | 'saria' | 'sun' | 'storms'
+
+/** What the bottle holds; undefined on the file means no bottle yet. */
+export type BottleContent = 'empty' | 'potion' | 'fairy'
+
+/** A reward the player stocks in the shop for themselves, e.g. "an episode of a show". */
+export interface Reward {
+  id: string
+  name: string
+  price: number
+}
+
+export interface Purchase {
+  name: string
+  price: number
+  at: number
+}
 
 export interface GameFile {
   slot: number
@@ -71,6 +90,16 @@ export interface GameFile {
   deaths: number
   /** Set once dailies count toward `completed` (older saves get tokens credited). */
   dailiesCounted?: boolean
+  // Added with the shop and songs; optional so older saves still load.
+  songs?: SongId[]
+  bottle?: BottleContent
+  rewards?: Reward[]
+  /** Most recent first, capped. */
+  purchases?: Purchase[]
+  /** Day the Song of Storms was last played (it recharges weekly). */
+  stormsPlayed?: string
+  /** Zelda's Lullaby focus view is on. */
+  focus?: boolean
 }
 
 /** Things that happen as a result of play, shown to the player one by one. */
@@ -88,3 +117,7 @@ export type GameEvent =
   | { type: 'damage'; quarters: number; overdue: number }
   | { type: 'heal'; quarters: number }
   | { type: 'gameOver' }
+  | { type: 'song'; song: SongId }
+  | { type: 'bottle'; content: BottleContent }
+  | { type: 'reward'; name: string }
+  | { type: 'fairy' }

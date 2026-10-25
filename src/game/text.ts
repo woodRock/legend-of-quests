@@ -1,5 +1,6 @@
 import { areaById } from './areas'
 import { SIDE_QUESTS_PER_PIECE } from './logic'
+import { songById } from './songs'
 import type { GameEvent, ItemId } from './types'
 
 export const ITEM_TEXT: Record<ItemId, { name: string; text: string }> = {
@@ -31,6 +32,16 @@ export const ITEM_TEXT: Record<ItemId, { name: string; text: string }> = {
     name: "Giant's Wallet",
     text: "You got a |Giant's Wallet|! You can now carry up to |500| Rupees.",
   },
+  'fairy-ocarina': {
+    name: 'Fairy Ocarina',
+    text: 'You got the |Fairy Ocarina|! A parting gift from a friend. Play it from |Select Item| in the pause menu once you learn a song.',
+  },
+}
+
+const BOTTLE_TEXT = {
+  empty: 'You got an |Empty Bottle|! Fill it with something useful at the shop.',
+  potion: 'You got a |Red Potion|! Drink it from |Select Item| to refill every heart.',
+  fairy: 'You caught a |Fairy| in your bottle! It will revive you if your hearts run out, or release it to heal.',
 }
 
 /** Text for an event's dialog box. Words between pipes are highlighted red. */
@@ -46,6 +57,13 @@ export function eventText(e: GameEvent): string {
     case 'token': return `You destroyed a Gold Skulltula. You got a token proving it! You have |${e.total}| tokens.`
     case 'area': return `A new area has appeared on your map: |${areaById(e.area).name}|.`
     case 'damage': return `Ouch! ${e.overdue} overdue ${e.overdue === 1 ? 'quest has' : 'quests have'} worn you down. Finish quests to recover your hearts.`
+    case 'song': {
+      const song = songById(e.song)
+      return `You learned |${song.name}|! ${song.effect} Play it with the Ocarina from |Select Item|.`
+    }
+    case 'bottle': return BOTTLE_TEXT[e.content]
+    case 'reward': return `You bought |${e.name}|! You earned it. Enjoy!`
+    case 'fairy': return 'Your hearts ran out, but the |Fairy| in your bottle revived you!'
     case 'rupees':
     case 'heal':
     case 'gameOver':
@@ -64,6 +82,10 @@ export const NAVI_TIPS = {
   ],
   overdue: [
     'Hey! Listen! Quests left |overdue| will chip away at your hearts each day. Keep an eye on them!',
+  ],
+  shop: [
+    'Hey! Listen! You have |Rupees| to spend! The |Kokiri Shop| in Kokiri Forest sells bottles and potions, and you can stock it with your own rewards.',
+    'Travel there from the |Map| in the pause menu.',
   ],
   daily: [
     'Watch out! |Gold Skulltulas| are daily habits. Defeat one each day to collect its token. Each one counts as a completed quest, and gathering enough tokens might bring something good!',

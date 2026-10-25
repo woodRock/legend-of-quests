@@ -322,3 +322,40 @@ input, textarea, select { font: inherit; user-select: text; -webkit-user-select:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ---------- Shop ---------- */
+.sheet.shop { background: linear-gradient(#5a3a1e, #3a2412); border-color: #c9a46a; }
+.shop-wallet { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 20px; margin: -6px 0 6px; }
+.shopkeeper { margin: 0 0 6px; text-align: center; font-weight: 700; font-style: italic; color: #f3e2bd; font-size: 14px; }
+.shelf-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(255, 255, 255, 0.1); }
+.shelf-main { flex: 1; min-width: 0; font-size: 15px; }
+.shelf-sub { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin-top: 2px; text-align: left; }
+.shelf-sub.late, .late { color: #ff8a8a; }
+.price-btn { flex: none; min-width: 74px; padding: 8px 10px; border-radius: 10px; text-align: center; background: linear-gradient(#ffe58a, var(--gold) 50%, #c9971e); color: #2b1b00; border: 2px solid #fff3c0; }
+.price-btn > span { display: inline-flex; align-items: center; gap: 4px; }
+.price-btn small { display: block; font-size: 10px; font-weight: 800; }
+.price-btn:disabled { background: rgba(0, 0, 0, 0.35); color: var(--muted); border-color: rgba(255, 255, 255, 0.15); cursor: default; }
+.sheet.shop .log-section, .sheet.shop .note { color: #f3e2bd; }
+.shop-sign {
+  display: block; margin: 0 auto 8px; padding: 7px 16px; border-radius: 8px; font-family: var(--display); font-size: 14px; letter-spacing: 0.08em;
+  background: linear-gradient(#8a5a2a, #5a3a1e); border: 2px solid #c9a46a; box-shadow: 0 3px 0 #2a1a0a;
+}
+
+/* ---------- Ocarina & songs ---------- */
+.song-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; margin-bottom: 8px; border-radius: 12px; text-align: left; background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(255, 255, 255, 0.12); }
+.song-row.locked { opacity: 0.55; cursor: default; }
+.song-main { flex: 1; min-width: 0; }
+.song-name { display: block; font-size: 16px; }
+.song-notes { display: flex; gap: 3px; margin: 4px 0 2px; }
+.performance { position: absolute; inset: 0; z-index: 45; background: rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 16px; }
+.staff { position: relative; width: 100%; max-width: 420px; height: 120px; }
+.staff-line { height: 2px; background: rgba(255, 255, 255, 0.55); margin-bottom: 22px; }
+.staff-notes { position: absolute; inset: 0; display: flex; justify-content: space-around; }
+.staff-note { position: relative; }
+.n-up { top: -8px; } .n-left { top: 14px; } .n-right { top: 36px; } .n-down { top: 58px; } .n-A { top: 80px; }
+.perf-title { font-family: var(--display); font-size: 26px; letter-spacing: 0.08em; }
+.sheet.sun { background: linear-gradient(#a8662a, #5a2e14); border-color: #ffd27a; }
+.sheet.storm { background: linear-gradient(#2a3442, #10161f); border-color: #8fa3bf; }
+.focus-tag { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 3px 10px; border-radius: 999px; font-family: var(--ui); font-size: 11px; letter-spacing: 0.1em; background: rgba(192, 132, 252, 0.3); border: 1px solid #c084fc; }
+.btn-c { right: 118px; top: 8px; width: 40px; height: 40px; background: radial-gradient(circle at 40% 30%, #ffe27a, var(--c-yellow)); color: #3a2a00; font-size: 9px; text-shadow: none; }
+.buttons.has-c { width: 162px; }

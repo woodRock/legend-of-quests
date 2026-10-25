@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AREAS } from '../game/areas'
-import { STONES, walletMax } from '../game/logic'
+import { STONES, hasSong, drinkBottle, walletMax } from '../game/logic'
+import { SONGS } from '../game/songs'
 import { ITEM_TEXT } from '../game/text'
 import type { GameFile, ItemId } from '../game/types'
 import { isMuted, play, setMuted } from '../lib/sfx'
 import { useGame } from '../store'
-import { BossKey, ItemIcon, SkulltulaToken } from '../ui/Icons'
+import { Bottle, BossKey, ItemIcon, MusicNote, SkulltulaToken } from '../ui/Icons'
 
 const SCREENS = ['Select Item', 'Map', 'Quest Status', 'Equipment'] as const
 
@@ -30,18 +31,57 @@ function PieceWheel({ pieces }: { pieces: number }) {
   )
 }
 
+const BOTTLE_CAPTION = {
+  empty: 'Empty Bottle. Fill it at the shop.',
+  potion: 'Red Potion. Tap again to drink it and refill every heart.',
+  fairy: 'Fairy. It revives you if your hearts run out. Tap again to release it and heal now.',
+}
+
+function SelectItem({ file, onPick }: { file: GameFile; onPick: (t: string) => void }) {
+  const { commit, setMenu } = useGame()
+  const [armed, setArmed] = useState(false)
+  const hasOcarina = file.items.includes('fairy-ocarina')
+  const full = file.bottle === 'potion' || file.bottle === 'fairy'
+
+  const tapBottle = () => {
+    if (!file.bottle) return onPick('???')
+    if (full && armed) {
+      const res = drinkBottle(file)
+      play('heal')
+      commit(res.file, res.events)
+      setArmed(false)
+      return onPick(file.bottle === 'potion' ? 'You drank the Red Potion. Hearts restored!' : 'You released the Fairy. Hearts restored!')
+    }
+    play('cursor')
+    setArmed(full)
+    onPick(BOTTLE_CAPTION[file.bottle])
+  }
+
+  return (
+    <>
+      <div className="slot-grid">
+        <button className={`slot-cell${hasOcarina ? '' : ' locked'}`}
+          onClick={() => { if (!hasOcarina) return onPick('???'); play('select'); setMenu('ocarina') }}>
+          {hasOcarina ? <ItemIcon item="fairy-ocarina" size={38} /> : '?'}
+        </button>
+        <button className={`slot-cell${file.bottle ? '' : ' locked'}${armed ? ' selected' : ''}`} onClick={tapBottle}>
+          {file.bottle ? <Bottle content={file.bottle} size={38} /> : '?'}
+        </button>
+        {Array.from({ length: 10 }, (_, i) => <Cell key={i} file={file} onPick={onPick} />)}
+      </div>
+      <p className="note" style={{ color: '#e9dcb8' }}>
+        {hasOcarina ? 'Tap the Ocarina to play a song.' : 'Complete 3 quests and someone may give you a gift...'}
+        {!file.bottle && ' Bottles are sold at the Kokiri Shop.'}
+      </p>
+    </>
+  )
+}
+
 function Subscreen({ index, file, onPick }: { index: number; file: GameFile; onPick: (t: string) => void }) {
   const { area, travel } = useGame()
   switch (SCREENS[index]) {
     case 'Select Item':
-      return (
-        <>
-          <div className="slot-grid">
-            {Array.from({ length: 12 }, (_, i) => <Cell key={i} file={file} onPick={onPick} />)}
-          </div>
-          <p className="note" style={{ color: '#e9dcb8' }}>Your inventory is empty. Keep questing — items, songs and the shop are found further on.</p>
-        </>
-      )
+      return <SelectItem file={file} onPick={onPick} />
     case 'Map':
       return (
         <div className="map-list">
@@ -81,8 +121,12 @@ function Subscreen({ index, file, onPick }: { index: number; file: GameFile; onP
           </div>
           <div className="log-section">SONGS</div>
           <div className="slot-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
-            {Array.from({ length: 6 }, (_, i) => (
-              <button key={i} className="slot-cell locked" onClick={() => onPick('A song not yet learned...')}>♪</button>
+            {SONGS.map((song) => hasSong(file, song.id) ? (
+              <button key={song.id} className="slot-cell" onClick={() => { play('cursor'); onPick(`${song.name}: ${song.effect}`) }}>
+                <MusicNote color={song.color} size={26} />
+              </button>
+            ) : (
+              <button key={song.id} className="slot-cell locked" onClick={() => onPick(`A song not yet learned... (${song.unlock})`)}>♪</button>
             ))}
           </div>
         </>

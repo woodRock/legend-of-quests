@@ -61,6 +61,7 @@ const SOUNDS = {
       'sine',
       0.07,
     ),
+  buy: () => notes([[1047, 0, 0.08], [1319, 0.08, 0.08], [1568, 0.16, 0.08], [2093, 0.24, 0.25]], 'square', 0.05),
   gameOver: () => notes([[392, 0, 0.4], [370, 0.4, 0.4], [349, 0.8, 0.4], [330, 1.2, 1]], 'triangle', 0.1),
 }
 
@@ -70,6 +71,38 @@ export function play(sound: Sound) {
   if (muted) return
   try {
     SOUNDS[sound]()
+  } catch {
+    /* audio unavailable */
+  }
+}
+
+/** Plays notes with a soft, breathy ocarina-like tone (sine with vibrato). */
+export function playMelody(freqs: number[], noteMs = 380) {
+  if (muted) return
+  try {
+    const c = ac()
+    freqs.forEach((freq, i) => {
+      const t = c.currentTime + (i * noteMs) / 1000
+      const dur = (noteMs / 1000) * 0.95
+      const osc = c.createOscillator()
+      const lfo = c.createOscillator()
+      const lfoGain = c.createGain()
+      const gain = c.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, t)
+      lfo.frequency.setValueAtTime(5.5, t)
+      lfoGain.gain.setValueAtTime(freq * 0.012, t)
+      lfo.connect(lfoGain).connect(osc.frequency)
+      gain.gain.setValueAtTime(0.0001, t)
+      gain.gain.exponentialRampToValueAtTime(0.14, t + 0.04)
+      gain.gain.setValueAtTime(0.12, t + dur * 0.7)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+      osc.connect(gain).connect(c.destination)
+      osc.start(t)
+      lfo.start(t)
+      osc.stop(t + dur + 0.05)
+      lfo.stop(t + dur + 0.05)
+    })
   } catch {
     /* audio unavailable */
   }
