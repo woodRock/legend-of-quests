@@ -3,7 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Each adventurer can only read and write their own save files.
     match /users/{uid}/files/{slot} {
-      allow read, write: if request.auth != null && request.auth.uid == uid
+      // No slot check on read: listing the collection has no single slot to test.
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid
         && slot in ['1', '2', '3'];
     }
   }

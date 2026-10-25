@@ -16,6 +16,7 @@ interface State {
   user: User | null | undefined
   slots: Slots
   slotsLoaded: boolean
+  filesError: string | null
   screen: Screen
   nameSlot: number | null
   file: GameFile | null
@@ -73,6 +74,7 @@ export const useGame = create<State>((set, get) => {
     user: undefined,
     slots: [null, null, null],
     slotsLoaded: false,
+    filesError: null,
     screen: 'title',
     nameSlot: null,
     file: null,
@@ -88,17 +90,20 @@ export const useGame = create<State>((set, get) => {
       backend.onAuth((user) => {
         unwatchFiles?.()
         unwatchFiles = null
-        set({ user, slotsLoaded: false })
+        set({ user, slotsLoaded: false, filesError: null })
         if (!user) {
           set({ slots: [null, null, null], file: null })
           return
         }
         unwatchFiles = backend.watchFiles(user.uid, (slots) => {
-          set({ slots, slotsLoaded: true })
+          set({ slots, slotsLoaded: true, filesError: null })
           // Another device saved this file more recently: take its version.
           const { file } = get()
           const incoming = file && slots[file.slot - 1]
           if (incoming && incoming.updatedAt > file.updatedAt) set({ file: incoming })
+        }, (err) => {
+          console.error('Could not load save files', err)
+          set({ filesError: err.message })
         })
       })
     },

@@ -8,7 +8,7 @@ import { Hearts } from '../ui/Hearts'
 import { ItemIcon, SkulltulaToken } from '../ui/Icons'
 
 export function FileSelect() {
-  const { slots, slotsLoaded, user, startFile, eraseFile, signOut, go } = useGame()
+  const { slots, slotsLoaded, filesError, user, startFile, eraseFile, signOut, go } = useGame()
   const [selected, setSelected] = useState<number | null>(null)
   const [erasing, setErasing] = useState(false)
   const [confirmErase, setConfirmErase] = useState<number | null>(null)
@@ -98,6 +98,11 @@ export function FileSelect() {
           </button>
           <button className="pill" onClick={() => { play('cancel'); void signOut() }}>Sign Out</button>
         </div>
+        {filesError && (
+          <p className="error" style={{ textAlign: 'center', margin: '14px 0 0' }}>
+            Your save files couldn't be loaded. Check your connection, then sign out and back in.
+          </p>
+        )}
         <p className="note">
           {user?.email} · {backend.mode === 'cloud' ? 'Synced across your devices' : 'Saved on this device only'}
         </p>

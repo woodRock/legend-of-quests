@@ -34,7 +34,7 @@ export interface Backend {
   register(email: string, password: string): Promise<void>
   signInWithGoogle?(): Promise<void>
   signOut(): Promise<void>
-  watchFiles(uid: string, cb: (slots: Slots) => void): () => void
+  watchFiles(uid: string, cb: (slots: Slots) => void, onError: (err: Error) => void): () => void
   saveFile(uid: string, file: GameFile): Promise<void>
   eraseFile(uid: string, slot: number): Promise<void>
 }
@@ -67,8 +67,8 @@ function cloudBackend(app: FirebaseApp): Backend {
     register: async (email, pw) => void (await createUserWithEmailAndPassword(auth, email, pw)),
     signInWithGoogle: async () => void (await signInWithPopup(auth, new GoogleAuthProvider())),
     signOut: () => signOut(auth),
-    watchFiles: (uid, cb) =>
-      onSnapshot(filesCol(uid), (snap) => cb(toSlots(snap.docs.map((d) => d.data() as GameFile)))),
+    watchFiles: (uid, cb, onError) =>
+      onSnapshot(filesCol(uid), (snap) => cb(toSlots(snap.docs.map((d) => d.data() as GameFile))), onError),
     saveFile: (uid, file) => setDoc(doc(filesCol(uid), String(file.slot)), file),
     eraseFile: (uid, slot) => deleteDoc(doc(filesCol(uid), String(slot))),
   }
