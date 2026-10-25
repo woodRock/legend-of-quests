@@ -24,10 +24,10 @@ To publish changes, run `npm run build` (it writes to `docs/`) and commit the re
 |---|---|
 | Side quest (green / blue / red rupee) | A single task: small / medium / big |
 | Dungeon → rooms → boss | A project → its steps → its final step |
-| Gold Skulltula | A daily habit; tokens upgrade your wallet at 10 and 30 |
+| Gold Skulltula | A daily habit; counts as a completed quest, and tokens upgrade your wallet at 10 and 30 |
 | Hearts | Each overdue quest costs ¼ heart a day; finishing quests heals |
 | Piece of Heart | Every 5 side quests; 4 pieces make a Heart Container |
 | Spiritual Stones | Your first three cleared dungeons |
-| Areas | Quest categories, unlocked as you progress |
+| Areas | Quest categories: 10, 25, 50 and 100 completed quests, or 1–3 cleared dungeons |
 
 Game rules live in `src/game/logic.ts`; screens are in `src/screens/`.

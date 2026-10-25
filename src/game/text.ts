@@ -9,7 +9,7 @@ export const ITEM_TEXT: Record<ItemId, { name: string; text: string }> = {
   },
   'deku-shield': {
     name: 'Deku Shield',
-    text: 'You got a |Deku Shield|! Five quests complete. You are getting the hang of this.',
+    text: 'You got a |Deku Shield|! Ten quests complete. You are getting the hang of this.',
   },
   'kokiri-emerald': {
     name: 'Kokiri Emerald',
@@ -66,6 +66,6 @@ export const NAVI_TIPS = {
     'Hey! Listen! Quests left |overdue| will chip away at your hearts each day. Keep an eye on them!',
   ],
   daily: [
-    'Watch out! |Gold Skulltulas| are daily habits. Defeat one each day to collect its token. Gather enough and something good might happen!',
+    'Watch out! |Gold Skulltulas| are daily habits. Defeat one each day to collect its token. Each one counts as a completed quest, and gathering enough tokens might bring something good!',
   ],
 }

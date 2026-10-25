@@ -69,6 +69,8 @@ export interface GameFile {
   /** Navi tips already shown. */
   tips: string[]
   deaths: number
+  /** Set once dailies count toward `completed` (older saves get tokens credited). */
+  dailiesCounted?: boolean
 }
 
 /** Things that happen as a result of play, shown to the player one by one. */

@@ -32,6 +32,7 @@ export function newFile(slot: number, name: string): GameFile {
     health: 12, containers: 3, pieces: 0, rupees: 0, skulltulas: 0,
     items: [], areas: ['field', 'kokiri'], quests: [],
     completed: 0, dungeonsCleared: 0, lastTick: today(), tips: [], deaths: 0,
+    dailiesCounted: true,
   }
 }
 
@@ -61,7 +62,7 @@ function giveItem(f: GameFile, item: ItemId, events: GameEvent[]) {
 /** Grants anything newly earned by the file's progress: equipment and new areas. */
 function checkMilestones(f: GameFile, events: GameEvent[]) {
   if (f.completed >= 1) giveItem(f, 'kokiri-sword', events)
-  if (f.completed >= 5) giveItem(f, 'deku-shield', events)
+  if (f.completed >= 10) giveItem(f, 'deku-shield', events)
   for (const a of AREAS) {
     if (!f.areas.includes(a.id) && a.unlocked(f)) {
       f.areas.push(a.id)
@@ -158,10 +159,12 @@ export function collectDaily(file: GameFile, id: string, day = today()): Result 
   if (!q || q.kind !== 'daily' || q.lastDone === day) return { file, events }
   q.lastDone = day
   f.skulltulas++
+  f.completed++
   events.push({ type: 'token', total: f.skulltulas })
   heal(f, 2, events)
   if (f.skulltulas >= 10) giveItem(f, 'adult-wallet', events)
   if (f.skulltulas >= 30) giveItem(f, 'giant-wallet', events)
+  checkMilestones(f, events)
   return { file: f, events }
 }
 
@@ -182,6 +185,20 @@ export function dailyTick(file: GameFile, day = today()): Result {
     events.push({ type: 'damage', quarters, overdue })
     if (f.health <= 0) events.push({ type: 'gameOver' })
   }
+  return { file: f, events }
+}
+
+/**
+ * Brings older saves up to date. Dailies didn't use to count as completed
+ * quests, so tokens collected before then are credited once.
+ */
+export function migrateFile(file: GameFile): Result {
+  if (file.dailiesCounted) return { file, events: [] }
+  const f = clone(file)
+  const events: GameEvent[] = []
+  f.completed += f.skulltulas
+  f.dailiesCounted = true
+  checkMilestones(f, events)
   return { file: f, events }
 }
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { backend, type Slots, type User } from './lib/backend'
-import { continueGame, dailyTick, newFile } from './game/logic'
+import { continueGame, dailyTick, migrateFile, newFile } from './game/logic'
 import type { AreaId, GameEvent, GameFile } from './game/types'
 
 export type Screen = 'title' | 'login' | 'files' | 'name' | 'game'
@@ -69,12 +69,13 @@ export const useGame = create<State>((set, get) => {
   }
   window.addEventListener('pagehide', flushSave)
 
-  /** Applies the once-a-day tick (overdue damage) and queues what it caused. */
+  /** Updates older saves, applies the once-a-day tick (overdue damage) and queues what they caused. */
   const tick = () => {
     const { file } = get()
     if (!file) return
-    const { file: next, events } = dailyTick(file)
-    if (next !== file) get().commit(next, events)
+    const migrated = migrateFile(file)
+    const ticked = dailyTick(migrated.file)
+    if (ticked.file !== file) get().commit(ticked.file, [...migrated.events, ...ticked.events])
   }
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') tick()

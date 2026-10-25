@@ -27,17 +27,17 @@ export const AREAS: Area[] = [
   {
     id: 'kakariko', name: 'Kakariko Village', hint: 'Errands and appointments',
     sky: ['#8d5a3a', '#f0c48a'], ground: '#7a6440',
-    unlock: 'Complete 3 quests', unlocked: (f) => f.completed >= 3,
+    unlock: 'Complete 10 quests', unlocked: (f) => f.completed >= 10,
   },
   {
     id: 'castle', name: 'Hyrule Castle Town', hint: 'Work and career',
     sky: ['#4a3c7a', '#c7b6e8'], ground: '#6d6a74',
-    unlock: 'Complete 6 quests', unlocked: (f) => f.completed >= 6,
+    unlock: 'Complete 25 quests', unlocked: (f) => f.completed >= 25,
   },
   {
     id: 'lonlon', name: 'Lon Lon Ranch', hint: 'Friends and family',
     sky: ['#d9774a', '#ffd9a0'], ground: '#8a9c3a',
-    unlock: 'Complete 10 quests', unlocked: (f) => f.completed >= 10,
+    unlock: 'Complete 50 quests', unlocked: (f) => f.completed >= 50,
   },
   {
     id: 'mountain', name: 'Death Mountain', hint: 'Fitness and health',
@@ -52,7 +52,7 @@ export const AREAS: Area[] = [
   {
     id: 'lake', name: 'Lake Hylia', hint: 'Learning and study',
     sky: ['#14507a', '#9be0e0'], ground: '#3a8a7a',
-    unlock: 'Complete 15 quests', unlocked: (f) => f.completed >= 15,
+    unlock: 'Complete 100 quests', unlocked: (f) => f.completed >= 100,
   },
   {
     id: 'gerudo', name: 'Gerudo Valley', hint: 'Money and admin',
