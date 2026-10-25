@@ -5,6 +5,7 @@ import { RUPEE_VALUE, uid } from '../game/logic'
 import type { AreaId, Quest, QuestKind, QuestSize } from '../game/types'
 import { play } from '../lib/sfx'
 import { useGame } from '../store'
+import { SheetClose } from '../ui/Sheet'
 
 const KINDS: { id: QuestKind; label: string; sub: string }[] = [
   { id: 'side', label: 'Side Quest', sub: 'A single task' },
@@ -65,6 +66,7 @@ export function QuestEditor({
       <motion.div className="sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
       <motion.form className="sheet" onSubmit={submit}
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 26, stiffness: 260 }}>
+        <SheetClose onClose={onClose} />
         <h2 className="outline">{editing ? 'Quest Details' : 'New Quest'}</h2>
 
         {!editing && (

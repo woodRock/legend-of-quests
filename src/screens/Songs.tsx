@@ -58,9 +58,11 @@ export function OcarinaMenu() {
 
   const finish = () => {
     if (!playing) return
-    if (playing.id === 'zelda') {
-      commit(toggleFocus(file))
-      play('discover')
+    // Read the save as it is now, not as it was when the ocarina opened.
+    const current = useGame.getState().file
+    if (playing.id === 'zelda' && current) {
+      commit(toggleFocus(current))
+      play(current.focus ? 'close' : 'discover')
     }
     setPlaying(null)
     setMenu(TARGET[playing.id])
@@ -78,12 +80,15 @@ export function OcarinaMenu() {
             onClick={() => { play('select'); setPlaying(song) }}>
             <MusicNote color={known ? song.color : 'rgba(255,255,255,.25)'} />
             <span className="song-main">
-              <span className="song-name">{known ? song.name : '???'}</span>
+              <span className="song-name">
+                {known ? song.name : '???'}
+                {known && song.id === 'zelda' && file.focus && <span className="focus-tag" style={{ marginLeft: 8 }}>END FOCUS</span>}
+              </span>
               <span className="song-notes">
                 {known ? song.notes.map((n, i) => <NoteButton key={i} note={n} size={18} />) : null}
               </span>
               <span className="shelf-sub">
-                {known ? (song.id === 'zelda' && file.focus ? 'Playing again ends focus.' : song.effect) : song.unlock}
+                {known ? (song.id === 'zelda' && file.focus ? 'Focus is on. Play it to end focus.' : song.effect) : song.unlock}
               </span>
             </span>
           </button>

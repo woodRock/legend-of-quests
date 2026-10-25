@@ -6,6 +6,7 @@ import type { Quest } from '../game/types'
 import { play } from '../lib/sfx'
 import { useGame } from '../store'
 import { BossKey, Compass, DungeonMap } from '../ui/Icons'
+import { SheetClose } from '../ui/Sheet'
 
 export function DungeonView({ quest, onEdit, onClose }: { quest: Quest; onEdit: () => void; onClose: () => void }) {
   const { file, commit } = useGame()
@@ -34,6 +35,7 @@ export function DungeonView({ quest, onEdit, onClose }: { quest: Quest; onEdit: 
       <motion.div className="sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
       <motion.div className="sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 26, stiffness: 260 }}>
+        <SheetClose onClose={onClose} />
         <div className="dungeon-head">
           <h2 className="outline" style={{ marginBottom: 2 }}>{quest.title}</h2>
           <div className="note" style={{ margin: 0 }}>{areaById(quest.area).name} · {cleared}/{rooms.length} rooms cleared</div>

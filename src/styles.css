@@ -359,3 +359,9 @@ input, textarea, select { font: inherit; user-select: text; -webkit-user-select:
 .focus-tag { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 3px 10px; border-radius: 999px; font-family: var(--ui); font-size: 11px; letter-spacing: 0.1em; background: rgba(192, 132, 252, 0.3); border: 1px solid #c084fc; }
 .btn-c { right: 118px; top: 8px; width: 40px; height: 40px; background: radial-gradient(circle at 40% 30%, #ffe27a, var(--c-yellow)); color: #3a2a00; font-size: 9px; text-shadow: none; }
 .buttons.has-c { width: 162px; }
+.sheet-close-bar { position: sticky; top: 0; height: 0; z-index: 3; }
+.sheet-close {
+  position: absolute; right: -6px; top: -8px; width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 24px; line-height: 1;
+  background: rgba(0, 0, 0, 0.45); border: 2px solid rgba(255, 255, 255, 0.5);
+}
