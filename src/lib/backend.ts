@@ -71,8 +71,10 @@ function cloudBackend(app: FirebaseApp): Backend {
     signOut: () => signOut(auth),
     watchFiles: (uid, cb, onError) =>
       onSnapshot(filesCol(uid), (snap) => cb(toSlots(snap.docs.map((d) => d.data() as GameFile))), onError),
-    saveFile: (uid, file) => setDoc(doc(filesCol(uid), String(file.slot)), file),
-    eraseFile: (uid, slot) => deleteDoc(doc(filesCol(uid), String(slot))),
+    // async so invalid data (which setDoc throws synchronously) becomes a rejection the caller handles,
+    // instead of aborting whatever triggered the save, like leaving the game.
+    saveFile: async (uid, file) => setDoc(doc(filesCol(uid), String(file.slot)), file),
+    eraseFile: async (uid, slot) => deleteDoc(doc(filesCol(uid), String(slot))),
   }
 }
 
